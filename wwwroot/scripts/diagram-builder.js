@@ -1,10 +1,14 @@
-﻿
-
-function DiagramBuilder(elementId, iOptions) {
+﻿function DiagramBuilder(elementId, iOptions) {
     let options = iOptions;
     let scrollParentElement;
     let lastItemOnMouseEnter;
     let control;
+    let circleWidth = 6;
+    let circleInSpace = 10;
+    let delta = 20;
+    let inBorderFlag = true;
+    let drawingPoint = true;
+    let drawingLine = !drawingPoint;
     const itemClassNameSelector = ".diagram-flow-item";
 
     this.init = function (_options) {
@@ -12,6 +16,9 @@ function DiagramBuilder(elementId, iOptions) {
 
         unRegisterMouseMove();
         registerMouseMove();
+
+        unRegisterMouseDown();
+        registerMouseDown();
     };
 
     this.stop = function () {
@@ -20,32 +27,16 @@ function DiagramBuilder(elementId, iOptions) {
     };
 
     function diagramBuilderMouseDown(e) {
-        const item = e.target.closest(itemClassNameSelector);
+        const item = getItemFromPoint(e);
 
-        if (!item) {
+        setFlagDragingLine(inBorderFlag);
+        setFlagDrawingPoint(!drawingLine);
+
+        if (!item)
             return;
-        }
-
-        //control = document.querySelector(elementId);
-        //scrollParentElement = document.querySelector(options.scrollContainerQuerySelector);
-
-        //const bounce = getElementSize(control);
-        //const style = window.getComputedStyle(control);
-
-        //isDragging = true;
-
-        //startX = options.isRelative ? (e.pageX - parseFloat(style.left)) : (e.clientX - parseInt(bounce.left));
-        //startY = options.isRelative ? (e.pageY - getScrolY() - parseFloat(style.top)) : (e.clientY - parseInt(bounce.top));
 
         unRegisterMouseMove();
         registerMouseMove();
-    }
-
-    function getScrolX() {
-        return scrollParentElement ? scrollParentElement.scrollLeft || 0 : 0;
-    }
-    function getScrolY() {
-        return scrollParentElement ? scrollParentElement.scrollTop || 0 : 0;
     }
 
     function diagramBuilderMouseUp(e) {
@@ -61,8 +52,27 @@ function DiagramBuilder(elementId, iOptions) {
         //}, 10, options, isdrag);
     }
 
+    function diagramBuilderTouchMove(e) {
+        let positions = getTouchScreen(e);
+
+        diagramBuilderMouseMove(positions);
+    }
+
     function diagramBuilderMouseMove(e) {
-        const item = e.target.closest(itemClassNameSelector);
+
+        if (drawingPoint)
+            drawingPlaceholderPoint(e);
+
+        if (drawingLine)
+            drawingLineConnector(e);
+    }
+
+    function drawingLineConnector(e) {
+
+    }
+
+    function drawingPlaceholderPoint(e) {
+        const item = getItemFromPoint(e);
 
         if (!item) {
             if (!lastItemOnMouseEnter)
@@ -77,8 +87,8 @@ function DiagramBuilder(elementId, iOptions) {
             return;
         }
 
-        if (lastItemOnMouseEnter)
-            linkConnector(e);
+        if (item)
+            placeholderConnector(e, item);
 
         if (item.classList.contains(itemClassNameSelector))
             return;
@@ -88,16 +98,136 @@ function DiagramBuilder(elementId, iOptions) {
         lastItemOnMouseEnter = item;
     }
 
-    function linkConnector(e) {
-        var newConnector = lastItemOnMouseEnter.querySelector(".connectors .new-connector");
-
-        if (!newConnector)
-            newConnector = createConnector();
+    function getItemFromPoint(e) {
+        try {
+            return document.elementsFromPoint(e.x, e.y).filter(d => d.classList.contains("diagram-flow-item"))[0];
+        } catch (e) {
+            return null;
+        }
 
     }
 
-    function removeConnector() {
+    function setFlagInBorder(flag) {
+        inBorderFlag = flag;
+    }
 
+    function setFlagDragingLine(flag) {
+        drawingLine = flag;
+    }
+
+    function setFlagDrawingPoint(flag) {
+        drawingPoint = flag;
+    }
+
+    function placeholderConnector(e, item) {
+        const builder = document.querySelector("#diagram-flow-builder");
+        let placeholderConnector = builder.querySelector(".connectors .points .placeholder-connector");
+
+        if (!placeholderConnector)
+            placeholderConnector = createPlaceholderConnector(item);
+
+        movePlaceholder(e, placeholderConnector, item);
+    }
+
+    function movePlaceholder(e, circle, item) {
+        const builder = document.querySelector("#diagram-flow-builder");
+        const rect = item.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (!item || !inBorder(e, x, y, rect)) {
+            removePlaceholder(builder, circle);
+            setFlagInBorder(false);
+            return;
+        }
+
+        setFlagInBorder(true);
+
+        const top = y;
+        const bottom = rect.height - y;
+        const left = x;
+        const right = rect.width - x;
+        const min = Math.min(top, bottom, left, right);
+
+        let px = 0;
+        let py = 0;
+
+        if (min === top) {
+            px = x + rect.left;
+            py = rect.top + circleInSpace;
+        } else if (min === bottom) {
+            px = x + rect.left;
+            py = rect.height + rect.top - circleInSpace;
+        } else if (min === left) {
+            px = rect.left + circleInSpace;
+            py = y + rect.top;
+        } else if (min === right) {
+            px = rect.width + rect.left - circleInSpace;
+            py = y + rect.top;
+        }
+
+        circle.setAttribute("cx", px);
+        circle.setAttribute("cy", py);
+    }
+
+    function inBorder(e, x, y, rect) {
+        x = x + rect.left;
+        y = y + rect.top;
+
+        const dx = rect.left + delta;
+        const dy = rect.top + delta;
+        const dwidth = rect.left + rect.width - delta;
+        const dheight = rect.top + rect.height - delta;
+
+        return !((x >= dx && x <= dwidth) && (y >= dy && y <= dheight));
+    }
+
+    function removePlaceholder(builder, placeholderConnector) {
+        let svgPoints = builder.querySelector(".connectors .points");
+
+        svgPoints.removeChild(placeholderConnector);
+    }
+    function createPlaceholderConnector(item) {
+        const svgPoints = document.querySelector("#diagram-flow-builder .connectors .points");
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+        circle.setAttribute("cx", "100");
+        circle.setAttribute("cy", "100");
+        circle.setAttribute("r", circleWidth);
+        circle.setAttribute("data-origin-id", getItemId(item) );
+        circle.classList.toggle("placeholder-connector", true);
+
+        svgPoints.appendChild(circle);
+
+        return circle;
+    }
+
+    function getScrolX() {
+        return scrollParentElement ? scrollParentElement.scrollLeft || 0 : 0;
+    }
+    function getScrolY() {
+        return scrollParentElement ? scrollParentElement.scrollTop || 0 : 0;
+    }
+
+    function removeConnector() {
+        setFlagInBorder(false);
+
+        const builder = document.querySelector("#diagram-flow-builder");
+
+        if (!builder)
+            return;
+
+        const svgPoints = builder.querySelector(".connectors .points");
+
+        if (!svgPoints)
+            return;
+
+        const placeholder = svgPoints.querySelector(".placeholder-connector");
+
+        if (!placeholder)
+            return;
+
+        svgPoints.removeChild(placeholder);
     }
 
     function getItemId(element) {
@@ -105,24 +235,6 @@ function DiagramBuilder(elementId, iOptions) {
             return;
 
         return element.dataset.id;
-    }
-
-    function createConnector() {
-        const connectorWrap = lastItemOnMouseEnter.querySelector(".connectors");
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-
-        circle.setAttribute("cx", "100"); 
-        circle.setAttribute("cy", "100"); 
-        circle.setAttribute("r", "10");
-        circle.setAttribute("fill", "blue"); 
-
-        svg.classList.toggle("new-connector", true);
-        svg.appendChild(circle);
-
-        connectorWrap.appendChild(svg);
-
-        return svg;
     }
 
     function dragElement(e) {
@@ -170,12 +282,6 @@ function DiagramBuilder(elementId, iOptions) {
         return (e.clientY - getScrolY() - startY);
     }
 
-    function diagramBuilderTouchMove(e) {
-        var positions = getTouchScreen(e);
-
-        diagramBuilderMouseMove(positions);
-    }
-
     function getTouchScreen(e) {
         if (e.touches)
             return {
@@ -192,6 +298,7 @@ function DiagramBuilder(elementId, iOptions) {
         e.pageX = e.pageX;
         e.pageX = e.pageY;
         e.offsetY = e.offsetY;
+        e.target = e.target;
         return e;
     }
 
@@ -254,7 +361,7 @@ function DiagramBuilder(elementId, iOptions) {
 }
 
 (async function (window) {
-    var diagramBuilders = {};
+    let diagramBuilders = {};
 
     window.diagramBuilder = {
         init: init,
@@ -262,7 +369,7 @@ function DiagramBuilder(elementId, iOptions) {
     };
 
     function init(elementId, options, dotnetReference) {
-        var control = getElement(elementId, options, dotnetReference);
+        let control = getElement(elementId, options, dotnetReference);
 
         options.dotnetReference = dotnetReference;
 
@@ -273,7 +380,7 @@ function DiagramBuilder(elementId, iOptions) {
         if (!elementId || !options || !dotnetReference)
             return;
 
-        var control = getElement(elementId, options, dotnetReference);
+        let control = getElement(elementId, options, dotnetReference);
 
         options.dotnetReference = dotnetReference;
 
