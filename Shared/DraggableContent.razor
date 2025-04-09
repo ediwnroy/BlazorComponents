@@ -1,0 +1,98 @@
+﻿@implements IDisposable
+@inject IJSRuntime _jsRuntime
+
+@if (Disabled)
+{
+    <div id="@ElementId"
+          class="@ContentClassName @(IsRelative.If("relative"))"
+          style="@Styles">
+        @ChildContent
+    </div>
+}
+else
+{
+    @if (WithoutContainer)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <div id="@ElementId"
+             class="draggable-content @ContentClassName @(IsRelative.If("relative"))"
+             style="top:@(Y)px;left:@(X)px;@Styles">
+            @ChildContent
+        </div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter, EditorRequired] public double? X { get; set; }
+    [Parameter, EditorRequired] public double Y { get; set; } = default!;
+    [Parameter] public bool Disabled { get; set; } = default!;
+    [Parameter] public string MainContainerQuerySelector { get; set; } = default!;
+    [Parameter] public string ScrollContainerQuerySelector { get; set; } = default!;
+    [Parameter] public string ContentClassName { get; set; } = default!;
+    [Parameter] public string Styles { get; set; } = default!;
+    [Parameter] public string ElementId { get; set; } = $"draggable-{Guid.NewGuid()}";
+    [Parameter] public string Id { get; set; } = default!;
+    [Parameter] public bool IsRelative { get; set; } = default!;
+    [Parameter] public bool LimitBorder { get; set; } = default!;
+    [Parameter] public bool WithoutContainer { get; set; } = default!;
+    [Parameter] public EventCallback<double> YChanged { get; set; } = default!;
+    [Parameter] public EventCallback<double> XChanged { get; set; } = default!;
+    [Parameter] public EventCallback<(string element, string xDirection, string yDirection, bool isResizing)> OnChangePosition { get; set; } = default!;
+    [Parameter] public EventCallback<(string element, string viewId)> StopDragging { get; set; } = default!;
+
+    public bool IsInitialized { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        //if (IsInitialized || X == null)
+        //    return;
+
+        if (!Disabled)
+            _jsRuntime.InvokeVoidAsync("draggable.init", $"#{ElementId}", new
+            {
+                InitXPosition = X,
+                InitYPosition = Y,
+                ContainerElementSelector = MainContainerQuerySelector,
+                ScrollContainerQuerySelector = ScrollContainerQuerySelector,
+                IsRelative = IsRelative,
+                LimitBorder = LimitBorder,
+                Styles = Styles,
+                Id = Id
+            }, DotNetObjectReference.Create(this));
+
+        IsInitialized = true;
+    }
+
+    [JSInvokable]
+    public async Task DraggingElement(double x, double y, string xDirection, string yDirection)
+    {
+        await OnChangePosition.InvokeAsync(($"#{ElementId}", xDirection, yDirection, false));
+
+        X = x;
+        Y = y;
+        //await YChanged.InvokeAsync(y);
+        //await XChanged.InvokeAsync(x);
+    }
+
+    [JSInvokable]
+    public async Task DraggingElementStop(string id)
+    {
+        if (string.IsNullOrEmpty(id) || Id != id)
+            return;
+
+        await StopDragging.InvokeAsync(($"#{ElementId}", Id));
+        IsInitialized = false;
+    }
+
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+
+    void IDisposable.Dispose()
+        => _jsRuntime.InvokeVoidAsync("draggable.stop");
+}

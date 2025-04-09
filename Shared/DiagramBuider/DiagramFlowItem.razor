@@ -1,0 +1,19 @@
+﻿@implements IDisposable
+
+@code {
+    [CascadingParameter] public DiagramFlowBuilder DiagramFlowBuilder { get; set; } = default!;
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter, EditorRequired] public DiagramItemViewModel Data { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        Data.Content = ChildContent;
+
+        DiagramFlowBuilder.AddChild(Data);
+    }
+
+    void IDisposable.Dispose()
+    {
+        DiagramFlowBuilder.RemoveChild(Data);
+    }
+}

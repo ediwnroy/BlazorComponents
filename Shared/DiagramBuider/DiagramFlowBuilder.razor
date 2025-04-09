@@ -1,0 +1,43 @@
+﻿<CascadingValue Value="this">
+    <div id="diagram-flow-builder"
+         class="diagram-flow-builder">
+        @ChildContent
+
+        @foreach (DiagramItemViewModel item in Items)
+        {
+            <DraggableContent OnChangePosition="OnChangePosition"
+                              StopDragging="StopDragging"
+                              @bind-X="item.X"
+                              @bind-Y="item.Y"
+                              Id="@item.Id"
+                              ElementId="@($"flow-item-{item.Id}")"
+                              MainContainerQuerySelector="@($"#{Id}")"
+                              ScrollContainerQuerySelector="@($"#{Id}")"
+                              WithoutContainer="true"
+                              LimitBorder="true"
+                              Styles="">
+                <section id="flow-item-@(item.Id)"
+                         class="diagram-flow-item @item.Class @(item.OnMouseEnter.If("on-mouse-enter"))"
+                         data-id="@item.Id"
+                         @onmouseenter="(e)=>OnMouseEnter(item)">
+                    @*<svg >
+                            <path d="M 146.6228894075319 267.3080145151043 C 946.8783076264973 467.3080145151043 1080.5521985851178 449.8773066352571 1180.8076168040832 449.8773066352571" class="sc-gswNZR cBhRcR"></path>
+                        </svg>*@
+                    <div class="connectors">
+
+                    </div>
+
+                    <div class="wrap">
+                        <header class="diagram-header">
+                            <i class="@item.Icon"></i>
+                            <label>@item.Title</label>
+                        </header>
+                        <div class="diagram-body">
+                            @item.Content
+                        </div>
+                    </div>
+                </section>
+            </DraggableContent>
+        }
+    </div>
+</CascadingValue>

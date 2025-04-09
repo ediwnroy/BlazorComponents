@@ -1,7 +1,50 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+<DiagramFlowBuilder>
+    @foreach (var item in GetItems())
+    {
+        <DiagramFlowItem Data="item">
+            <label>Hola mundo</label>
+        </DiagramFlowItem>
+    }
+</DiagramFlowBuilder>
 
-<h1>Hello, world!</h1>
+@code{
 
-Welcome to your new app.
+    public List<DiagramItemViewModel> GetItems()
+    {
+        return new List<DiagramItemViewModel>()
+        {
+            new DiagramItemViewModel(){
+                  Title= "Facebook Message",
+                   Class = "",
+                    Icon = ""
+            },
+            new DiagramItemViewModel(){
+                  Title= "Github Stars",
+                   Class = "",
+                    Icon = ""
+            },
+            new DiagramItemViewModel(){
+                  Title= "Template",
+                   Class = "",
+                    Icon = ""
+            },
+            new DiagramItemViewModel(){
+                  Title= "Send Email",
+                   Class = "",
+                    Icon = ""
+            },
+            new DiagramItemViewModel(){
+                  Title= "Save log file",
+                   Class = "",
+                    Icon = ""
+            },
+            new DiagramItemViewModel(){
+                  Title= "Telegram bot",
+                   Class = "",
+                    Icon = ""
+            }
+        };
+    }
+}
