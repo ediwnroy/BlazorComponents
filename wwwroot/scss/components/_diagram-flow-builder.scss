@@ -101,15 +101,32 @@
         }
 
         .points {
+            position: absolute;
+            inset: 0;
+
             .placeholder-connector {
                 cursor: pointer;
                 position: absolute;
                 fill: #A2B6C3;
                 pointer-events: all;
             }
+
+            .connector-point {
+                fill: #3199DC;
+            }
         }
 
         .lines {
+            position: absolute;
+            inset: 0;
+
+            .placeholder-path, .path {
+                fill: none;
+                stroke-width: 3px;
+                stroke: steelblue;
+                pointer-events: auto;
+                stroke: #3199DC;
+            }
         }
     }
 }

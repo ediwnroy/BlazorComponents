@@ -92,9 +92,27 @@
   width: 100%;
   height: 100%;
 }
+.diagram-flow-builder .connectors .points {
+  position: absolute;
+  inset: 0;
+}
 .diagram-flow-builder .connectors .points .placeholder-connector {
   cursor: pointer;
   position: absolute;
   fill: #A2B6C3;
   pointer-events: all;
+}
+.diagram-flow-builder .connectors .points .connector-point {
+  fill: #3199DC;
+}
+.diagram-flow-builder .connectors .lines {
+  position: absolute;
+  inset: 0;
+}
+.diagram-flow-builder .connectors .lines .placeholder-path, .diagram-flow-builder .connectors .lines .path {
+  fill: none;
+  stroke-width: 3px;
+  stroke: steelblue;
+  pointer-events: auto;
+  stroke: #3199DC;
 }
