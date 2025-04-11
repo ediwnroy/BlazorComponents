@@ -27,6 +27,9 @@
                 removeLine(e, item, builder);
 
             setFlagDragingLine(false);
+            inBorderFlag = false;
+            currentOriginPath = null;
+            currentDrawingLine = null;
         }
 
         setFlagDragingLine(inBorderFlag);
