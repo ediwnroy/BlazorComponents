@@ -1,5 +1,6 @@
 ﻿function DiagramBuilder(elementId, iOptions) {
     let options = iOptions;
+    let domBuilder;
 
     this.init = function (_options) {
         domBuilder = new DiagramDomObserver({
@@ -13,8 +14,19 @@
         });
     };
 
+    this.refreshingPosition = function (elementId) {
+        if (domBuilder)
+            domBuilder.refreshingPosition(elementId);
+    };
+
+    this.endRefreshingPosition = function (elementId) {
+        if (domBuilder)
+            domBuilder.endRefreshingPosition(elementId);
+    };
+
     this.stop = function () {
-        domBuilder.stop();
+        if (domBuilder)
+            domBuilder.stop();
     };
 
     function onFocusElement(elementId, focusName) {
@@ -30,7 +42,7 @@
     }
 
     function connected(originid, targeId) {
-        
+
     }
 
     function canFocus(elementId) {
@@ -47,7 +59,9 @@
 
     window.diagramBuilder = {
         init: init,
-        stop: stop
+        stop: stop,
+        refreshingPosition: refreshingPosition,
+        endRefreshingPosition: endRefreshingPosition
     };
 
     function init(elementId, options, dotnetReference) {
@@ -56,6 +70,18 @@
         options.dotnetReference = dotnetReference;
 
         control.init(options);
+    }
+
+    function refreshingPosition(builderId, elementId) {
+        let control = getElement(builderId);
+
+        control.refreshingPosition(elementId);
+    }
+
+    function endRefreshingPosition(builderId, elementId) {
+        let control = getElement(builderId);
+
+        control.endRefreshingPosition(elementId);
     }
 
     function stop(elementId, options, dotnetReference) {

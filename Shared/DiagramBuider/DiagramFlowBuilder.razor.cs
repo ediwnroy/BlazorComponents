@@ -38,7 +38,18 @@ namespace BlazorComponents.Shared.DiagramBuider
 
         private void OnChangePosition((string element, string xDirection, string yDirection, bool isResizing) draggableElement, DiagramItemViewModel item)
         {
-            _jsRuntime.InvokeVoidAsync("diagramBuilder.refreshing-position", item.Id, DotNetObjectReference.Create(this));
+            Task.Run(() =>
+            {
+                _jsRuntime.InvokeVoidAsync("diagramBuilder.refreshingPosition", $"#{Id}", item.Id);
+            }).ConfigureAwait(false);
+        }
+
+        private void EndRefreshingPosition((string element, string viewId) draggableElement, DiagramItemViewModel item)
+        {
+            Task.Run(() =>
+            {
+                _jsRuntime.InvokeVoidAsync("diagramBuilder.endRefreshingPosition", $"#{Id}", item.Id);
+            }).ConfigureAwait(false);
         }
 
         private void StopDragging((string element, string viewId) payload)

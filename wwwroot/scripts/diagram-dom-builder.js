@@ -1,4 +1,6 @@
 ﻿function DiagramDomObserver(options) {
+    const svgUtils = new SVGUtils();
+
     const ARROW = "M2.5,2.5 L25,12.5 L2.5,22.5 L10,12.5 L2.5,2.5Z";
     const INITIALSTATUS = "INITIALSTATUS";
     const SEARCHINGCONNECTION = "SEARCHINGCONNECTION";
@@ -9,12 +11,11 @@
 
     let lastItemOnMouseEnter;
     let inBorderFlag = true;
-    let drawingPoint = true;
-    let drawingLine = !drawingPoint;
     let currentOriginPath;
     let currentDrawingLine;
     let actionStatus = INITIALSTATUS;
     let positionHoverPoint;
+    let affectedItems;
 
     unRegisterMouseMove();
     registerMouseMove();
@@ -22,26 +23,69 @@
     unRegisterMouseDown();
     registerMouseDown();
 
+    this.refreshingPosition = function (elementId) {
+        affectedItems = affectedItems || getAffectedItems(elementId);
+
+        affectedItems.lines.forEach(x => x.domElement.style.stroke = "red");
+        affectedItems.points.forEach(x => x.domElement.style.fill = "red");
+    };
+
+    this.endRefreshingPosition = function (elementId) {
+        affectedItems = null;
+    };
+
+    function getAffectedItems(elementId) {
+        const line1 = Array.from(document.querySelectorAll(`.diagram-flow-builder .connectors .lines [data-destination-id='${elementId}']`));
+        const line2 = Array.from(document.querySelectorAll(`.diagram-flow-builder .connectors .lines [data-origin-id='${elementId}']`));
+
+        return {
+            lines: [...line1, ...line2]
+                .map(d => {
+                    var position = getPosition(d);
+                    return {
+                        domElement: d,
+                        position: position
+                    };
+                }),
+            points: Array.from(document.querySelectorAll(`.diagram-flow-builder .connectors .points [data-point-id='${elementId}']`))
+                .map(d => {
+                    var position = getPosition(d);
+                    return {
+                        domElement: d,
+                        position: position
+                    };
+                }),
+        };
+    }
+
+    function getPosition(e) {
+        //switch (e.tagName) {
+
+        //    case "polygon": return getPolygonPosition(e);
+        //    case "circle": return getCirclePosition(e);
+        //    case "path": return getPathPosition(e);
+        //}
+
+        const box = e.getBBox();
+
+        return {
+            x: box.x + (box.width / 2),
+            y: box.y + (box.height / 2)
+        };
+    }
+
+    function getPolygonPosition(e) {
+    }
+
+    function getCirclePosition(e) {
+    }
+
+    function getPathPosition(e) {
+    }
+
     function diagramBuilderMouseDown(e) {
         const item = getItemFromPoint(e);
         const builder = document.querySelector("#diagram-flow-builder");
-
-        //if (drawingLine) {
-        //    if (inBorderFlag)
-        //        connectLine(e, item, builder);
-        //    else
-        //        removeLine(e, item, builder);
-
-        //    setFlagDragingLine(false);
-        //    inBorderFlag = false;
-        //    currentOriginPath = null;
-        //    currentDrawingLine = null;
-        //}
-
-        //setFlagDragingLine(inBorderFlag);
-
-        //if (inBorderFlag)
-        //    addPoint(e, item, builder);
 
         switch (actionStatus) {
             case INITIALSTATUS:
@@ -63,6 +107,18 @@
         }
     }
 
+    function diagramBuilderMouseMove(e) {
+        const item = getItemFromPoint(e);
+        const builder = document.querySelector("#diagram-flow-builder");
+
+        focusElement(e, item);
+
+        drawingPlaceholderPoint(e, item, builder);
+
+        if (actionStatus === SEARCHINGCONNECTION)
+            drawingLineConnector(e, builder);
+    }
+
     function connectPoint(e, item, builder) {
         if (inBorderFlag)
             connectLine(e, item, builder);
@@ -75,7 +131,7 @@
     function connectLine(e, item, builder) {
         setDestinationPoint(builder);
 
-        moveLine(currentDrawingLine, currentOriginPath.destinationX, currentOriginPath.destinationY);
+        svgUtils.curveLine(currentDrawingLine, currentOriginPath.destinationX, currentOriginPath.destinationY, currentOriginPath.originX, currentOriginPath.originY);
 
         addDestinationPoint(e, item, builder);
 
@@ -104,141 +160,20 @@
         diagramBuilderMouseMove(positions);
     }
 
-    function diagramBuilderMouseMove(e) {
-        const item = getItemFromPoint(e);
-        const builder = document.querySelector("#diagram-flow-builder");
-
-        focusElement(e, item);
-
-        drawingPlaceholderPoint(e, item, builder);
-
-        if (actionStatus === SEARCHINGCONNECTION)
-            drawingLineConnector(e, builder);
-    }
-
     function drawingLineConnector(e, builder) {
         currentDrawingLine = currentDrawingLine || getLine(builder);
 
         const targetX = e.clientX;
         const targetY = e.clientY;
 
-        moveLine(currentDrawingLine, targetX, targetY);
-    }
-
-    //let circleTemplate1;
-    //let circleTemplate2;
-    //let circleTemplate3;
-    //let xx;
-    //let yy;
-
-    function moveLine(line, x, y) {
-
-        const { cp1Xp, cp1Yp, cp1X, cp1Y, cp2X, cp2Y } = getControlPoints(currentOriginPath.originX, currentOriginPath.originY, x, y);
-
-        //circleTemplate1 = circleTemplate1 || demoPoint("demo-point");
-        //circleTemplate2 = circleTemplate2 || demoPoint("demo-point");
-        //circleTemplate3 = circleTemplate3 || demoPoint("demo-point");
-
-
-        //circleTemplate1.setAttribute("cx", cp1X);
-        //circleTemplate1.setAttribute("cy", cp1Y);
-
-        //circleTemplate2.setAttribute("cx", cp2X);
-        //circleTemplate2.setAttribute("cy", cp2Y);
-
-
-        //xx = cp1X + getDistance(currentOriginPath.originX, currentOriginPath.originY, cp1X, cp1Y);
-        //yy = cp1Y;
-
-        //circleTemplate3.setAttribute("cx", xx);
-        //circleTemplate3.setAttribute("cy", yy);
-        //circleTemplate3.setAttribute("fill", 'red');
-
-        line.setAttribute("d", `M ${currentOriginPath.originX} ${currentOriginPath.originY} C ${cp1X} ${cp1Y} ${cp2X} ${cp2Y} ${x} ${y}`);
-    }
-
-    function getControlPoints(x0, y0, x3, y3) {
-
-        const cp = findPointCloserToStart(x0, y0, x3, y3, .45);
-        const cp2 = findPointCloserToStart(x0, y0, x3, y3, .55);
-        //const cp1X = cp.x;
-        //const cp1Y = cp.y;
-        //const cp2X = cp2.x;
-        //const cp2Y = cp2.y;
-        //const deg = getAngle(x0, y0, x3, y3);
-        //const deg = 90;
-        //const rotate = rotatePoint(x0, y0, cp1X, cp1Y, deg);
-        //const rotate2 = rotatePoint(x3, y3, cp2X, cp2Y, deg);
-
-        //console.log(`${deg}`);
-        //var d = getDistance(x0, cp1Y, cp1X, cp1Y);
-        //var dd = getDistance(x3, cp2Y, cp2X, cp2Y);
-
-        return {
-            //cp1Xp: cp.x,
-            //cp1Yp: y0,
-            cp1X: cp.x,
-            cp1Y: y0,
-            cp2X: cp2.x,
-            cp2Y: y3
-        };
-    }
-
-    //function rotatePoint(x1, y1, x2, y2, deg) {
-    //    const rad = deg * Math.PI / 180;
-    //    const xp = x2 - x1;
-    //    const yp = y2 - y1;
-
-    //    return {
-    //        x: (xp * Math.cos(rad)) - (yp * Math.sin(rad)) + x1,
-    //        y: (xp * Math.sin(rad)) + (yp * Math.cos(rad)) + y1,
-    //    };
-    //}
-
-    //function getAngle(x1, y1, x2, y2) {
-    //    const angleRad = Math.atan2(y2 - y1, x2 - x1);
-
-    //    let angleDeg = angleRad * 180 / Math.PI;
-
-    //    if (angleDeg < 0) {
-    //        angleDeg = 360 + angleDeg;
-    //    }
-
-    //    return 360 - angleDeg;
-    //    return angleDeg;
-    //}
-
-    function getDistance(x1, y1, x2, y2) {
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function findPointCloserToStart(x0, y0, x3, y3, t) {
-        const x = (1 - t) * x0 + t * x3;
-        const y = (1 - t) * y0 + t * y3;
-        return { x, y };
-    }
-
-    function demoPoint(className) {
-        const svgPoints = document.querySelector("#diagram-flow-builder .connectors .points");
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-
-        circle.setAttribute("cx", "100");
-        circle.setAttribute("cy", "100");
-        circle.setAttribute("r", circleWidth);
-        circle.classList.toggle(className, true);
-
-        svgPoints.appendChild(circle);
-
-        return circle;
+        svgUtils.curveLine(currentDrawingLine, targetX, targetY, currentOriginPath.originX, currentOriginPath.originY);
     }
 
     function getLine(builder) {
-        var line = builder.querySelector(`.connectors .lines [data-origin-id='${currentOriginPath.originId}']`);
+        //var line = builder.querySelector(`.connectors .lines [data-origin-id='${currentOriginPath.originId}']`);
 
-        if (line)
-            return line;
+        //if (line)
+        //    return line;
 
         return createLine(builder);
     }
@@ -250,7 +185,9 @@
         clonedPoint.classList.remove("placeholder-connector");
         clonedPoint.classList.add("connector-point");
         clonedPoint.classList.add("connector-point-origin");
-        clonedPoint.setAttribute("no-connected","");
+
+        clonedPoint.setAttribute("no-connected", "");
+        clonedPoint.setAttribute("data-point-id", clonedPoint.dataset.originId);
 
         svgPoints.appendChild(clonedPoint);
 
@@ -259,16 +196,19 @@
 
     function setDestinationPoint(builder) {
         var point = builder.querySelector(".connectors .points .placeholder-connector");
+        var originPoint = builder.querySelector(`.connectors .points [data-point-id='${currentOriginPath.originId}']`);
 
         const data = getOriginData(point);
 
         currentOriginPath.destinationId = data.originId;
         currentOriginPath.destinationX = data.originX;
         currentOriginPath.destinationY = data.originY;
+
+        originPoint.setAttribute("data-destination-id", data.originId);
     }
 
     function addDestinationPoint(e, item, builder) {
-        var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        var path = svgUtils.createPolygon();
         const svgPoints = document.querySelector("#diagram-flow-builder .connectors .points");
         const originPoint = document.querySelector(`#diagram-flow-builder .connectors .points [data-origin-id='${currentOriginPath.originId}'][no-connected]`);
 
@@ -279,9 +219,11 @@
 
         path.classList.add("connector-point");
         path.classList.add("connector-point-destination");
-        path.setAttribute("d", transalateD(rotateD(ARROW, getDegDirection(x0, y0, x1, y1), 13.75, 12.5), x0 - 14, y0 - 12));
-        path.setAttribute("data-destination-id", getItemId(item));
-        path.setAttribute("data-origin-id", currentOriginPath.destinationId);
+        //path.setAttribute("points", svgUtils.rotatePolygonD(getDegDirection(x0, y0, x1, y1), 13.75, 12.5), x0 - 14, y0 - 12);
+        path.setAttribute("points", svgUtils.translatePolygonD(svgUtils.rotatePolygonD(getDegDirection(x0, y0, x1, y1), 13.75, 12.5), x0 - 15, y0 - 11));
+        path.setAttribute("data-destination-id", currentOriginPath.destinationId);
+        path.setAttribute("data-origin-id", currentOriginPath.originId);
+        path.setAttribute("data-point-id", currentOriginPath.destinationId);
 
         originPoint.removeAttribute("no-connected");
 
@@ -291,13 +233,9 @@
     }
 
     function getDegDirection(x0, y0, x1, y1) {
-
-        console.log(positionHoverPoint);
-        console.log(getAngle(x1, y1, x0, y0));
-
         switch (positionHoverPoint) {
             case "BOTTOM":
-                return getAngle(x1, y1, x0, y0, -20);
+                return getAngle(x1, y1, x0, y0, 0);
             case "TOP":
                 return getAngle(x1, y1, x0, y0, -30);
             case "LEFT": return 0;
@@ -312,39 +250,7 @@
         if (angleDeg < 0)
             angleDeg += deg;
 
-
         return parseInt(angleDeg);
-    }
-
-    function transalateD(d, x, y) {
-        return d.replace(/([ML])\s*(-?\d*\.?\d+),\s*(-?\d*\.?\d+)/g, (_, cmd, x0, y0) => {
-            const nx = parseFloat(x0) + x;
-            const ny = parseFloat(y0) + y;
-            return `${cmd}${nx},${ny}`;
-        });
-    }
-
-    function rotateD(d, angleDeg, centerX = 0, centerY = 0) {
-        const angleRad = angleDeg * (Math.PI / 180);
-
-        const t = d.replace(/([ML])([^ML]+)/g, (match, cmd, coords) => {
-            const points = coords.trim().split(" ");
-            const rotatedPoints = points.map((point) => {
-                const [x, y] = point.split(",").map(x => parseFloat(x));
-
-                const xRel = x - centerX;
-                const yRel = y - centerY;
-
-                const xr = xRel * Math.cos(angleRad) - yRel * Math.sin(angleRad);
-                const yr = xRel * Math.sin(angleRad) + yRel * Math.cos(angleRad);
-
-                return `${(xr + centerX).toFixed(2)},${(yr + centerY).toFixed(2)} `;
-            });
-
-            return cmd + rotatedPoints.join(" ");
-        });
-
-        return t.trim()
     }
 
     function addNewLine(e, item, builder) {
@@ -353,6 +259,8 @@
 
         clonedLine.classList.remove("placeholder-path");
         clonedLine.classList.add("path");
+        clonedLine.setAttribute("data-origin-id", currentOriginPath.originId);
+        clonedLine.setAttribute("data-destination-id", currentOriginPath.destinationId);
 
         svgPoints.appendChild(clonedLine);
     }
@@ -393,7 +301,6 @@
     function drawingPlaceholderPoint(e, item, builder) {
         if (!item) {
             removeConnector();
-            setFlagDrawingPoint(false);
             return;
         }
 
@@ -413,14 +320,6 @@
 
     function setFlagInBorder(flag) {
         inBorderFlag = flag;
-    }
-
-    function setFlagDragingLine(flag) {
-        drawingLine = flag;
-    }
-
-    function setFlagDrawingPoint(flag) {
-        drawingPoint = flag;
     }
 
     function placeholderConnector(e, item, builder) {
@@ -497,7 +396,7 @@
 
     function createPlaceholderConnector(item) {
         const svgPoints = document.querySelector("#diagram-flow-builder .connectors .points");
-        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        const circle = svgUtils.createCircle();
 
         circle.setAttribute("cx", "100");
         circle.setAttribute("cy", "100");
@@ -511,7 +410,7 @@
     }
 
     function createLine(builder) {
-        var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        var path = svgUtils.createPath();
         const svgPoints = document.querySelector("#diagram-flow-builder .connectors .lines");
 
         path.classList.add("placeholder-path");
