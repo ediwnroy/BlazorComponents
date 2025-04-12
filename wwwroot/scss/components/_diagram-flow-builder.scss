@@ -114,6 +114,14 @@
             .connector-point {
                 fill: #3199DC;
             }
+
+            .connector-point-origin {
+                fill: #3199DC;
+            }
+
+            .connector-point-destination {
+                fill: #3199DC;
+            }
         }
 
         .lines {
@@ -127,6 +135,19 @@
                 pointer-events: auto;
                 stroke: #3199DC;
             }
+
+            .path {
+                stroke-dasharray: 10 5;
+                -webkit-animation: dash 7s linear infinite;
+                animation: dash 7s linear infinite;
+                stroke-dashoffset: 55;
+            }
         }
+    }
+}
+
+@keyframes dash {
+    100% {
+        stroke-dashoffset: 0;
     }
 }
