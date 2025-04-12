@@ -5,7 +5,7 @@
 
         @foreach (DiagramItemViewModel item in Items)
         {
-            <DraggableContent OnChangePosition="OnChangePosition"
+            <DraggableContent OnChangePosition="(s)=>OnChangePosition(s,item)"
                               StopDragging="StopDragging"
                               @bind-X="item.X"
                               @bind-Y="item.Y"
@@ -21,8 +21,8 @@
                          data-id="@item.Id"
                          @onmouseenter="(e)=>OnMouseEnter(item)">
                     @*<svg >
-                        <path d="M 146.6228894075319 267.3080145151043 C 946.8783076264973 467.3080145151043 1080.5521985851178 449.8773066352571 1180.8076168040832 449.8773066352571" class="sc-gswNZR cBhRcR"></path>
-                    </svg>*@
+                            <path d="M 146.6228894075319 267.3080145151043 C 946.8783076264973 467.3080145151043 1080.5521985851178 449.8773066352571 1180.8076168040832 449.8773066352571" class="sc-gswNZR cBhRcR"></path>
+                        </svg>*@
                     @*<div class="placeholder"></div>*@
                     <div class="wrap">
                         <header class="diagram-header">

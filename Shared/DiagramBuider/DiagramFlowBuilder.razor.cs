@@ -36,9 +36,9 @@ namespace BlazorComponents.Shared.DiagramBuider
             StateHasChanged();
         }
 
-        private void OnChangePosition((string element, string xDirection, string yDirection, bool isResizing) draggableElement)
+        private void OnChangePosition((string element, string xDirection, string yDirection, bool isResizing) draggableElement, DiagramItemViewModel item)
         {
-
+            _jsRuntime.InvokeVoidAsync("diagramBuilder.refreshing-position", item.Id, DotNetObjectReference.Create(this));
         }
 
         private void StopDragging((string element, string viewId) payload)
