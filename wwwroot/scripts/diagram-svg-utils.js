@@ -1,6 +1,7 @@
 ﻿function SVGUtils() {
-    const ARROW = "M2.5,2.5 L25,12.5 L2.5,22.5 L10,12.5 L2.5,2.5Z";
-    const POINTS = "28,15 2,28 9.3,14.8 2,2";
+    const _this = this;
+
+    this.POINTS = "24,13 3,24 10,13 3,3";
 
     this.createPolygon = function () {
         return document.createElementNS("http://www.w3.org/2000/svg", "polygon");
@@ -28,10 +29,18 @@
         });
     };
 
+    this.movePolyg = function (d, x, y) {
+        return d.replace(/(-?\d*\.?\d+),\s*(-?\d*\.?\d+)/g, (_,  x0, y0) => {
+            const nx = parseFloat(x0) + x;
+            const ny = parseFloat(y0) + y;
+            return `${nx},${ny}`;
+        });
+    };
+
     this.rotatePolygonD = function (angleDeg, centerX = 0, centerY = 0) {
         const angleRad = angleDeg * (Math.PI / 180);
 
-        const points = POINTS.trim().split(" ");
+        const points = _this.POINTS.trim().split(" ");
         const rotatedPoints = points.map((point) => {
             const [x, y] = point.split(",").map(x => parseFloat(x));
 

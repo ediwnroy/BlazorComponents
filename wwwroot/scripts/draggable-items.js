@@ -108,6 +108,9 @@ function DraggableElement(elementId, iOptions) {
             if (isdrag && options && options.dotnetReference)
                 options.dotnetReference.invokeMethodAsync("DraggingElementStop", iOptions.id);
         }, 10, options, isdrag);
+
+
+        triggerEvents("stopDragging");
     }
 
     function dragAndDropMouseMove(e) {
@@ -145,6 +148,22 @@ function DraggableElement(elementId, iOptions) {
             if (options && options.dotnetReference)
                 options.dotnetReference.invokeMethodAsync("DraggingElement", x, y, getXDirection(deltaX), getYDirection(deltaY));
         }, 10, x, y, options);
+
+        triggerEvents("dragging");
+    }
+
+    function triggerEvents(action) {
+        if (!options.subscriptionEventOnDrag)
+            return;
+
+        var evt = new CustomEvent(options.subscriptionEventOnDrag, {
+            detail: {
+                sourceId: options.id,
+                action : action
+            }
+        });
+
+        window.dispatchEvent(evt);
     }
 
     function getXDirection(x) {

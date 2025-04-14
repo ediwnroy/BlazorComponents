@@ -4,8 +4,8 @@
 @if (Disabled)
 {
     <div id="@ElementId"
-          class="@ContentClassName @(IsRelative.If("relative"))"
-          style="@Styles">
+         class="@ContentClassName @(IsRelative.If("relative"))"
+         style="@Styles">
         @ChildContent
     </div>
 }
@@ -36,6 +36,7 @@ else
     [Parameter] public string Styles { get; set; } = default!;
     [Parameter] public string ElementId { get; set; } = $"draggable-{Guid.NewGuid()}";
     [Parameter] public string Id { get; set; } = default!;
+    [Parameter] public string SubscriptionEventOnDrag { get; set; } = default!;
     [Parameter] public bool IsRelative { get; set; } = default!;
     [Parameter] public bool LimitBorder { get; set; } = default!;
     [Parameter] public bool WithoutContainer { get; set; } = default!;
@@ -60,6 +61,7 @@ else
                 ScrollContainerQuerySelector = ScrollContainerQuerySelector,
                 IsRelative = IsRelative,
                 LimitBorder = LimitBorder,
+                SubscriptionEventOnDrag = SubscriptionEventOnDrag,
                 Styles = Styles,
                 Id = Id
             }, DotNetObjectReference.Create(this));
