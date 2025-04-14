@@ -1,6 +1,6 @@
 ﻿@page "/"
 
-<DiagramFlowBuilder>
+<DiagramFlowBuilder SubscriptionEventOnDrag="drawing-item-flow">
     @foreach (var item in GetItems())
     {
         <DiagramFlowItem Data="item">

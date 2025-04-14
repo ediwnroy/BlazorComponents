@@ -111,6 +111,9 @@
 .diagram-flow-builder .connectors .points .connector-point-destination {
   fill: #3199DC;
 }
+.diagram-flow-builder .connectors .points .destination-refence-connector {
+  fill: transparent;
+}
 .diagram-flow-builder .connectors .lines {
   position: absolute;
   inset: 0;
@@ -125,7 +128,7 @@
 .diagram-flow-builder .connectors .lines .path {
   stroke-dasharray: 10 5;
   -webkit-animation: dash 7s linear infinite;
-  animation: dash 7s linear infinite;
+  animation: dash 25s linear infinite;
   stroke-dashoffset: 255;
 }
 

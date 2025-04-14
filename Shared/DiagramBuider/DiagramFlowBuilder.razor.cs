@@ -7,6 +7,7 @@ namespace BlazorComponents.Shared.DiagramBuider
     public partial class DiagramFlowBuilder
     {
         [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+        [Parameter] public string SubscriptionEventOnDrag { get; set; } = default!;
         [Inject] public IJSRuntime _jsRuntime { get; set; } = default!;
         private List<DiagramItemViewModel> Items { get; set; } = new List<DiagramItemViewModel>();
         private string Id { get; set; } = $"diagram-builder-{Guid.NewGuid().ToString()}";
@@ -16,7 +17,7 @@ namespace BlazorComponents.Shared.DiagramBuider
         {
             _jsRuntime.InvokeVoidAsync("diagramBuilder.init", $"#{Id}", new
             {
-
+                SubscriptionEventOnDrag
             }, DotNetObjectReference.Create(this));
         }
 

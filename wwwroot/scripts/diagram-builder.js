@@ -5,6 +5,7 @@
     this.init = function (_options) {
         domBuilder = new DiagramDomObserver({
             elementId: elementId,
+            subscriptionEventOnDrag: _options.subscriptionEventOnDrag,
             events: {
                 onFocusElement: onFocusElement,
                 canFocus: canFocus,
