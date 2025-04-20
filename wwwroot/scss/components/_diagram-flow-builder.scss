@@ -12,6 +12,23 @@
     width: 100%;
     height: 100%;
     display: grid;
+    grid-template-rows: 65px;
+    grid-template-columns: 350px 1fr;
+    grid-template-areas: 'header header' 'sidebar editor';
+
+    .grid-1 {
+        grid-area: header;
+        background-color: red;
+    }
+
+    .grid-2 {
+        grid-area: sidebar;
+        background-color: red;
+    }
+
+    .grid-4 {
+        grid-area: editor;
+    }
 }
 
 .diagram-flow-builder {
@@ -23,6 +40,7 @@
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: auto;
     /*overflow: hidden;*/
     /*    svg {
         position: absolute;

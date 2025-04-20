@@ -29,6 +29,9 @@
     this.OriginName = "ORIGIN";
     this.DestinationName = "DESTINATION";
 
+    unWindowResizeSubscribe();
+    windowResizeSubscribe();
+
     unRegisterMouseMove();
     registerMouseMove();
 
@@ -299,8 +302,9 @@
     }
 
     function updateOriginPosition(e, builder) {
-        const x = e.clientX;
-        const y = e.clientY;
+        const rectContainer = builder.getBoundingClientRect();
+        const x = e.clientX - rectContainer.left + builder.scrollLeft;
+        const y = e.clientY - rectContainer.top + builder.scrollTop;
         const data = getOriginData(currentMovingPoint);
 
         currentMovingPoint.setAttribute("cx", x);
@@ -319,10 +323,10 @@
     }
 
     function updateDestinationPosition(e, builder) {
-        //const bounce = currentMovingPoint.getBoundingClientRect();
 
-        const x = e.clientX;
-        const y = e.clientY;
+        const rectContainer = builder.getBoundingClientRect();
+        const x = e.clientX - rectContainer.left + builder.scrollLeft;
+        const y = e.clientY - rectContainer.top + builder.scrollTop;
         const connectionId = currentMovingPoint.dataset.connectionId;
 
         //Actualizacion de punto de referencia
@@ -350,6 +354,8 @@
      * @returns
      */
     function onDragItem(e) {
+        driagramBuilderWindowResize();
+
         if (e.type !== options.subscriptionEventOnDrag)
             return;
 
@@ -523,10 +529,11 @@
     }
 
     function drawingLineConnector(e, builder) {
+        const rectContainer = builder.getBoundingClientRect();
         currentDrawingLine = currentDrawingLine || getLine(builder);
 
-        const targetX = e.clientX;
-        const targetY = e.clientY;
+        const targetX = e.clientX - rectContainer.left + builder.scrollLeft;
+        const targetY = e.clientY - rectContainer.top + builder.scrollTop;
 
         svgUtils.curveLine(currentDrawingLine, targetX, targetY, currentOriginPath.originX, currentOriginPath.originY);
     }
@@ -730,8 +737,9 @@
 
 
     function getOverPoints(e, builder) {
-        const x = e.clientX;
-        const y = e.clientY;
+        const rectContainer = builder.getBoundingClientRect();
+        const x = e.clientX - rectContainer.left + builder.scrollLeft;
+        const y = e.clientY - rectContainer.top + builder.scrollTop;
         const allPoints = builder.querySelectorAll(".connectors .points [data-point]:not([data-point='destination-reference'])");
 
 
@@ -799,8 +807,9 @@
     function movePlaceholder(e, circle, item) {
         const builder = document.querySelector("#diagram-flow-builder");
         const rect = item.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const rectContainer = builder.getBoundingClientRect();
+        const x = e.clientX - rect.left ;
+        const y = e.clientY - rect.top ;
 
         if (!item || !inBorder(e, item)) {
             //removePlaceholder(builder, circle);
@@ -820,20 +829,20 @@
         let py = 0;
 
         if (min === top) {
-            px = x + rect.left;
-            py = rect.top + circleInSpace;
+            px = x + rect.left - rectContainer.left + builder.scrollLeft;
+            py = rect.top + circleInSpace - rectContainer.top + builder.scrollTop;
             positionHoverPoint = "TOP";
         } else if (min === bottom) {
-            px = x + rect.left;
-            py = rect.height + rect.top - circleInSpace;
+            px = x + rect.left - rectContainer.left + builder.scrollLeft;
+            py = rect.height + rect.top - circleInSpace - rectContainer.top + builder.scrollTop;
             positionHoverPoint = "BOTTOM";
         } else if (min === left) {
-            px = rect.left + circleInSpace;
-            py = y + rect.top;
+            px = rect.left + circleInSpace - rectContainer.left + builder.scrollLeft;
+            py = y + rect.top - rectContainer.top;
             positionHoverPoint = "LEFT";
         } else if (min === right) {
-            px = rect.width + rect.left - circleInSpace;
-            py = y + rect.top;
+            px = rect.width + rect.left - circleInSpace - rectContainer.left + builder.scrollLeft;
+            py = y + rect.top - rectContainer.top + builder.scrollTop;
             positionHoverPoint = "RIGHT";
         }
 
@@ -1049,6 +1058,27 @@
     function dragAndDropSubscribe() {
         window.addEventListener(options.subscriptionEventOnDrag, onDragItem);
     }
+
+    function unWindowResizeSubscribe() {
+        window.removeEventListener("resize", driagramBuilderWindowResize);
+    }
+
+    function windowResizeSubscribe() {
+        window.addEventListener("resize", driagramBuilderWindowResize);
+    }
+
+    function driagramBuilderWindowResize() {
+        const builders = document.querySelectorAll("#diagram-flow-builder");
+
+        builders.forEach(builder => {
+            var connectors = builder.querySelector(".connectors");
+
+            connectors.style.height = `${builder.scrollHeight}px`;
+            connectors.style.width = `${builder.scrollWidth}px`;
+
+        });
+    }
+
     function generateId(length = 11) {
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let result = '';
