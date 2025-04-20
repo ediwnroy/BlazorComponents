@@ -2,6 +2,7 @@
     let options = iOptions;
     let domBuilder;
 
+
     this.init = function (_options) {
         domBuilder = new DiagramDomObserver({
             elementId: elementId,
@@ -11,6 +12,7 @@
                 canFocus: canFocus,
                 canConnect: canConnect,
                 connected: connected,
+                canEdit: canEdit
             }
         });
     };
@@ -50,7 +52,20 @@
         return true;
     }
 
-    function canConnect(elementId) {
+    function canConnect(originId, destinationId, e) {
+        if (originId === destinationId)
+            return false;
+
+        if (e === domBuilder.OriginName)
+            return true;
+
+        if (e === domBuilder.DestinationName)
+            return originId !== destinationId;
+
+        return true;
+    }
+
+    function canEdit(sourceId) {
         return true;
     }
 }

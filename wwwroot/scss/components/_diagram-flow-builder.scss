@@ -8,6 +8,12 @@
     }
 }
 
+.sample-grid {
+    width: 100%;
+    height: 100%;
+    display: grid;
+}
+
 .diagram-flow-builder {
     background-color: #F6F6F6;
     opacity: 1;
@@ -113,14 +119,25 @@
 
             .connector-point {
                 fill: #3199DC;
+                /*pointer-events: auto;*/
             }
 
             .connector-point-origin {
                 fill: #3199DC;
+
+                &.hover {
+                    fill: #1DAB50;
+                    cursor: pointer;
+                }
             }
 
             .connector-point-destination {
                 fill: #3199DC;
+
+                &.hover {
+                    fill: #1DAB50;
+                    cursor: pointer;
+                }
             }
 
             .destination-refence-connector {

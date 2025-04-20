@@ -39,10 +39,8 @@
     }
 
     function newDraggableElement(id, options, dotnetReference) {
-
         return new DraggableElement(id, options);
     }
-
 })(window);
 
 function DraggableElement(elementId, iOptions) {
@@ -53,6 +51,12 @@ function DraggableElement(elementId, iOptions) {
     let scrollParentElement;
     let isTriggered;
     let options = iOptions;
+    let preventDrag = false;
+
+    this.preventDefault = function () {
+        isDragging = false;
+    }
+
 
     this.init = function (_options) {
         options = _options;
@@ -98,7 +102,7 @@ function DraggableElement(elementId, iOptions) {
 
     function dragAndDropMouseUp(e) {
         const isdrag = isDragging;
-
+        preventDrag = false
         isDragging = false;
 
         //unRegisterMouseDown();

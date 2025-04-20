@@ -7,6 +7,12 @@
   height: 100vh;
 }
 
+.sample-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+}
+
 .diagram-flow-builder {
   background-color: #F6F6F6;
   opacity: 1;
@@ -104,12 +110,21 @@
 }
 .diagram-flow-builder .connectors .points .connector-point {
   fill: #3199DC;
+  /*pointer-events: auto;*/
 }
 .diagram-flow-builder .connectors .points .connector-point-origin {
   fill: #3199DC;
 }
+.diagram-flow-builder .connectors .points .connector-point-origin.hover {
+  fill: #1DAB50;
+  cursor: pointer;
+}
 .diagram-flow-builder .connectors .points .connector-point-destination {
   fill: #3199DC;
+}
+.diagram-flow-builder .connectors .points .connector-point-destination.hover {
+  fill: #1DAB50;
+  cursor: pointer;
 }
 .diagram-flow-builder .connectors .points .destination-refence-connector {
   fill: transparent;

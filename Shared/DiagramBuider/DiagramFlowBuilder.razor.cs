@@ -8,6 +8,7 @@ namespace BlazorComponents.Shared.DiagramBuider
     {
         [Parameter] public RenderFragment ChildContent { get; set; } = default!;
         [Parameter] public string SubscriptionEventOnDrag { get; set; } = default!;
+        [Parameter] public string ClassName { get; set; } = default!;
         [Inject] public IJSRuntime _jsRuntime { get; set; } = default!;
         private List<DiagramItemViewModel> Items { get; set; } = new List<DiagramItemViewModel>();
         private string Id { get; set; } = $"diagram-builder-{Guid.NewGuid().ToString()}";
